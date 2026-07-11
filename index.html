@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trace3 Meeting &amp; Bundle License Explorer</title>
+<style>
+:root{
+  --bg:#0f172a; --panel:#1e293b; --panel2:#243349; --line:#334155;
+  --txt:#e2e8f0; --muted:#94a3b8; --accent:#2563eb; --accent2:#3b82f6;
+  --ok:#22c55e; --bad:#ef4444; --chip:#0b1220;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--txt);line-height:1.45;}
+header{padding:22px 26px 14px;border-bottom:1px solid var(--line);}
+h1{margin:0 0 4px;font-size:20px;font-weight:650;}
+.sub{color:var(--muted);font-size:13px;}
+.wrap{display:flex;gap:22px;padding:22px 26px;align-items:flex-start;flex-wrap:wrap;}
+.col-left{flex:0 0 320px;max-width:340px;}
+.col-right{flex:1 1 560px;min-width:340px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px;margin-bottom:18px;}
+.card h2{margin:0 0 12px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.seg{display:flex;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:4px;gap:4px;}
+.seg button{flex:1;background:transparent;border:0;color:var(--muted);padding:9px 10px;border-radius:7px;
+  font-size:14px;font-weight:600;cursor:pointer;transition:.15s;}
+.seg button.active{background:var(--accent);color:#fff;}
+.seg button:hover:not(.active){color:var(--txt);}
+.keys{display:flex;flex-direction:column;gap:8px;}
+.key{display:flex;align-items:flex-start;gap:10px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;padding:10px 12px;cursor:pointer;transition:.15s;user-select:none;}
+.key:hover{border-color:var(--accent2);}
+.key.on{background:rgba(37,99,235,.18);border-color:var(--accent2);}
+.key .box{flex:0 0 18px;height:18px;margin-top:1px;border-radius:5px;border:2px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+.key.on .box{background:var(--accent);border-color:var(--accent);}
+.key .nm{font-size:14px;font-weight:600;}
+.tools{display:flex;gap:8px;margin-top:12px;}
+.tools button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+  padding:8px;border-radius:8px;font-size:12px;cursor:pointer;}
+.tools button:hover{color:var(--txt);border-color:var(--accent2);}
+.mode{font-size:12px;color:var(--muted);margin-top:12px;background:var(--chip);border:1px solid var(--line);
+  border-radius:8px;padding:9px 11px;}
+.mode b{color:var(--accent2);}
+.rhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+.count{font-size:26px;font-weight:700;}
+.count small{font-size:13px;color:var(--muted);font-weight:500;margin-left:6px;}
+.selkeys{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.selkeys span{display:inline-block;background:rgba(37,99,235,.16);border:1px solid var(--accent2);
+  color:#bfdbfe;border-radius:20px;padding:2px 10px;margin:0 6px 6px 0;font-weight:600;}
+.grp{margin-bottom:16px;}
+.grp-h{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line);}
+.lic{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 14px;margin-bottom:10px;}
+.lic .lname{font-size:14px;font-weight:600;margin-bottom:10px;}
+.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));column-gap:34px;row-gap:16px;}
+.show .row{display:flex;flex-direction:column;gap:2px;font-size:12px;}
+.show .row .f{color:var(--muted);font-size:11px;line-height:1.2;}
+.show .row .val{font-weight:600;font-size:13px;line-height:1.2;}
+.show .row .val.redx{color:var(--bad);}
+.show .row .val.green{color:var(--ok);}
+.show .row.isredx .f{color:#b45}
+.empty{color:var(--muted);font-size:14px;padding:26px 6px;text-align:center;border:1px dashed var(--line);border-radius:10px;}
+footer{color:var(--muted);font-size:11.5px;padding:6px 26px 26px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Trace3 Meeting &amp; Bundle License Explorer</h1>
+  <div class="sub">Check Key fields to filter licenses (AND, no red&nbsp;&#10060;). Each matching license lists its Show fields; items not included (red&nbsp;&#10060;) appear in <span style="color:#ef4444;font-weight:600">red</span>.</div>
+</header>
+<div class="wrap">
+  <div class="col-left">
+    <div class="card">
+      <h2>Plan Set</h2>
+      <div class="seg" id="seg">
+        <button data-sheet="Commercial" class="active">Commercial</button>
+        <button data-sheet="ZfG">ZfG</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Keys</h2>
+      <div class="keys" id="keys"></div>
+      <div class="tools">
+        <button id="all">Select all</button>
+        <button id="clear">Clear</button>
+      </div>
+      <div class="mode">A license shows only if <b>none</b> of the selected keys is a red&nbsp;&#10060; for it <b>(AND)</b>.</div>
+    </div>
+  </div>
+  <div class="col-right">
+    <div class="card">
+      <div class="rhead">
+        <div class="count"><span id="cnt">0</span><small id="cntlbl">of 0 licenses</small></div>
+      </div>
+      <div class="selkeys" id="selkeys"></div>
+      <div id="results"></div>
+    </div>
+  </div>
+</div>
+<footer>Source: Trace3 Meeting and Bundle Plans.xlsx &middot; Keys come from the workbook's Key column; the fields listed under each license come from the Show column. A red &#10060; means that item is not included in the license.</footer>
+<script>
+const DATA = {"Commercial": {"licenses": [{"col": "F", "name": "Zoom Workplace Pro", "group": "Zoom Workplace Pro"}, {"col": "G", "name": "Zoom Workplace Pro Plus", "group": "Zoom Workplace Pro"}, {"col": "H", "name": "Zoom Workplace Business", "group": "Zoom Workplace Business"}, {"col": "I", "name": "Zoom Workplace Business  Plus", "group": "Zoom Workplace Business"}, {"col": "J", "name": "Zoom Workplace Enterprise  Essentials", "group": "Zoom Workplace Enterprise"}, {"col": "K", "name": "Zoom Workplace Enterprise", "group": "Zoom Workplace Enterprise"}, {"col": "L", "name": "Zoom Workplace Enterprise Plus", "group": "Zoom Workplace Enterprise"}, {"col": "M", "name": "Zoom Workplace Enterprise Plus - EA", "group": "Zoom Workplace Enterprise"}, {"col": "N", "name": "Zoom Workplace Enterprise  Plus with Premier Support - EA", "group": "Zoom Workplace Enterprise"}, {"col": "O", "name": "Zoom Workplace Enterprise  Premier", "group": "Zoom Workplace Enterprise"}, {"col": "P", "name": "Zoom Workplace for Education  School and Campus", "group": "Zoom Workplace for Education"}, {"col": "Q", "name": "Zoom Workplace for Education  School and Campus Plus", "group": "Zoom Workplace for Education"}, {"col": "R", "name": "Zoom Workplace for Education  Enterprise Essentials", "group": "Zoom Workplace for Education"}, {"col": "S", "name": "Zoom Workplace for Education Enterprise Plus", "group": "Zoom Workplace for Education"}, {"col": "T", "name": "Zoom Workplace for Education  Enterprise Premier", "group": "Zoom Workplace for Education"}, {"col": "U", "name": "Zoom Workplace for Education  Enterprise Higher Ed Student", "group": "Zoom Workplace for Education"}, {"col": "V", "name": "Zoom Meetings Pro and Zoom Phone Unlimited", "group": "United Bundle"}, {"col": "W", "name": "Zoom Meetings Pro  and Zoom Phone Pro", "group": "United Bundle"}, {"col": "X", "name": "Zoom Meetings Business  and Zoom Phone Unlimted", "group": "United Bundle"}, {"col": "Y", "name": "Zoom Meetings Business  and Zoom Phone Pro", "group": "United Bundle"}, {"col": "Z", "name": "Zoom Meetings Enterprise  and Zoom Phone Unlimited", "group": "United Bundle"}, {"col": "AA", "name": "Zoom Meetings Enterprise and Zoom Phone Pro", "group": "United Bundle"}, {"col": "AB", "name": "Enterprise", "group": "Meeting"}, {"col": "AC", "name": "Enterprise Bundle", "group": "Legacy Meeting Bundle"}, {"col": "AD", "name": "Enterprise Plus Bundle", "group": "Legacy Meeting Bundle"}, {"col": "AE", "name": "India Business Bundle", "group": "Legacy Meeting Bundle"}, {"col": "AF", "name": "Zoom Enterprise India", "group": "Legacy Meeting Bundle"}, {"col": "AG", "name": "Education", "group": "Meeting"}], "keys": [{"feature": "Meeting Capacity", "label": "Meetings", "cells": {"E": "100", "F": "100", "G": "100", "H": "300", "I": "300", "J": "500", "K": "500", "L": "1000", "M": "1000", "N": "1000", "O": "1000", "P": "300", "Q": "300", "R": "500", "S": "1000", "T": "1000", "U": "300", "V": "100", "W": "100", "X": "300", "Y": "300", "Z": "300", "AA": "300", "AB": "300", "AC": "500", "AD": "1000", "AE": "300", "AF": "500", "AG": "300"}}, {"feature": "Zoom Room", "label": "Zoom Room", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "Bundle(25):Room(1)", "K": "❌", "L": "Bundle(1):Room(1)", "M": "Bundle(1):Room(1)", "N": "Bundle(1):Room(1)", "O": "Bundle(1):Room(1)", "P": "❌", "Q": "❌", "R": "Bundle(25):Room(1)", "S": "Bundle(1):Room(1)", "T": "Bundle(1):Room(1)", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "Bundle(1):Room(1)", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Visitor Management", "label": "Visitor Management", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "✅", "J": "✅", "K": "❌", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "✅", "Q": "✅", "R": "✅", "S": "✅", "T": "✅", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Unlimited Regional Calling", "label": "Unlimited Regional Calling", "cells": {"E": "❌", "F": "❌", "G": "✅", "H": "❌", "I": "✅", "J": "❌", "K": "❌", "L": "❌", "M": "❌", "N": "❌", "O": "✅", "P": "❌", "Q": "✅", "R": "❌", "S": "❌", "T": "✅", "U": "❌", "V": "✅", "W": "❌", "X": "✅", "Y": "❌", "Z": "✅", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "PowerPack", "label": "PowerPack", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "❌", "Q": "❌", "R": "❌", "S": "✅", "T": "✅", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Phone Pro", "label": "Phone Pro", "cells": {"E": "❌", "F": "❌", "G": "✅", "H": "❌", "I": "✅", "J": "❌", "K": "✅", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "❌", "Q": "✅", "R": "❌", "S": "✅", "T": "✅", "U": "❌", "V": "✅", "W": "✅", "X": "✅", "Y": "✅", "Z": "✅", "AA": "✅", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}], "show": [{"feature": "Meeting Capacity", "label": "Meeting Capacity", "cells": {"E": "100", "F": "100", "G": "100", "H": "300", "I": "300", "J": "500", "K": "500", "L": "1000", "M": "1000", "N": "1000", "O": "1000", "P": "300", "Q": "300", "R": "500", "S": "1000", "T": "1000", "U": "300", "V": "100", "W": "100", "X": "300", "Y": "300", "Z": "300", "AA": "300", "AB": "300", "AC": "500", "AD": "1000", "AE": "300", "AF": "500", "AG": "300"}}, {"feature": "Meeting Capacity For Free User", "label": "Meeting Capacity For Free User", "cells": {"E": "100", "F": "100", "G": "100", "H": "300", "I": "300", "J": "300", "K": "300", "L": "300", "M": "300", "N": "300", "O": "300", "P": "300", "Q": "300", "R": "300", "S": "300", "T": "300", "U": "300", "V": "100", "W": "100", "X": "300", "Y": "300", "Z": "300", "AA": "300", "AB": "300", "AC": "300", "AD": "300", "AE": "300", "AF": "300", "AG": "300"}}, {"feature": "Cloud Recording Storage  (GB/License)", "label": "Cloud Recording Storage  (GB/License)", "cells": {"E": "Local", "F": "10", "G": "10", "H": "10", "I": "15", "J": "Unlimited", "K": "Unlimited", "L": "Unlimited", "M": "Unlimited", "N": "Unlimited", "O": "Unlimited", "P": "5", "Q": "10", "R": "10", "S": "Unlimited", "T": "Unlimited", "U": "0.5  or  Unlimited   [2]", "V": "1 GB", "W": "1GB", "X": "1GB", "Y": "1GB", "Z": "Unlimited", "AA": "Unlimited", "AB": "Unlimited", "AC": "Unlimited", "AD": "Unlimited", "AE": "5GB", "AF": "Unlimited", "AG": "Edu/Edu Site Legacy. 0.5GB Edu Site: 1GB"}}, {"feature": "Workspace Reservation", "label": "Workspace Reservation", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "✅", "J": "✅", "K": "❌", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "✅", "Q": "✅", "R": "✅", "S": "✅", "T": "✅", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Zoom Room", "label": "Zoom Room", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "Bundle(25):Room(1)", "K": "❌", "L": "Bundle(1):Room(1)", "M": "Bundle(1):Room(1)", "N": "Bundle(1):Room(1)", "O": "Bundle(1):Room(1)", "P": "❌", "Q": "❌", "R": "Bundle(25):Room(1)", "S": "Bundle(1):Room(1)", "T": "Bundle(1):Room(1)", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "Bundle(1):Room(1)", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Room Connector", "label": "Room Connector", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "Bundle(25):Connector(1)", "K": "❌", "L": "Bundle(1):Connector(1)", "M": "Bundle(1):Connector(1)", "N": "Bundle(1):Connector(1)", "O": "Bundle(1):Connector(1)", "P": "❌", "Q": "❌", "R": "Bundle(25):Connector(1)", "S": "Bundle(1):Connector(1)", "T": "Bundle(1):Connector(1)", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "Bundle(1):Connector(1)", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Visitor Management", "label": "Visitor Management", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "✅", "J": "✅", "K": "❌", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "✅", "Q": "✅", "R": "✅", "S": "✅", "T": "✅", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Zoom Node Basic", "label": "Zoom Node Basic", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "❌", "M": "Bundle(50):Node(1)", "N": "Bundle(50):Node(1)", "O": "❌", "P": "❌", "Q": "❌", "R": "❌", "S": "❌", "T": "❌", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Zoom Node Phone Hybrid", "label": "Zoom Node Phone Hybrid", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "❌", "M": "Bundle(50):Node(1)", "N": "Bundle(50):Node(1)", "O": "❌", "P": "❌", "Q": "❌", "R": "❌", "S": "❌", "T": "❌", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Unlimited Regional Calling", "label": "Unlimited Regional Calling", "cells": {"E": "❌", "F": "❌", "G": "✅", "H": "❌", "I": "✅", "J": "❌", "K": "❌", "L": "❌", "M": "❌", "N": "❌", "O": "✅", "P": "❌", "Q": "✅", "R": "❌", "S": "❌", "T": "✅", "U": "❌", "V": "✅", "W": "❌", "X": "✅", "Y": "❌", "Z": "✅", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "PowerPack", "label": "PowerPack", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "❌", "Q": "❌", "R": "❌", "S": "✅", "T": "✅", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Common Area", "label": "Common Area", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "❌", "Q": "❌", "R": "❌", "S": "✅", "T": "✅", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Phone Pro", "label": "Phone Pro", "cells": {"E": "❌", "F": "❌", "G": "✅", "H": "❌", "I": "✅", "J": "❌", "K": "✅", "L": "✅", "M": "✅", "N": "✅", "O": "✅", "P": "❌", "Q": "✅", "R": "❌", "S": "✅", "T": "✅", "U": "❌", "V": "✅", "W": "✅", "X": "✅", "Y": "✅", "Z": "✅", "AA": "✅", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}, {"feature": "Microsoft Teams", "label": "Microsoft Teams", "cells": {"E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "❌", "M": "✅", "N": "✅", "O": "❌", "P": "❌", "Q": "❌", "R": "❌", "S": "❌", "T": "❌", "U": "❌", "V": "❌", "W": "❌", "X": "❌", "Y": "❌", "Z": "❌", "AA": "❌", "AB": "❌", "AC": "❌", "AD": "❌", "AE": "❌", "AF": "❌", "AG": "❌"}}]}, "ZfG": {"licenses": [{"col": "D", "name": "Pro", "group": "Pro"}, {"col": "E", "name": "Zoom One Business", "group": "Zoom One Business"}, {"col": "F", "name": "Zoom One Business Plus", "group": "Zoom One Business"}, {"col": "G", "name": "Zoom One Enterprise Essentials", "group": "Zoom Workplace Enterprise"}, {"col": "H", "name": "Zoom One Enterprise", "group": "Zoom Workplace Enterprise"}, {"col": "I", "name": "Zoom One Enterprise Plus", "group": "Zoom Workplace Enterprise"}, {"col": "J", "name": "Zoom One Enterprise Premier", "group": "Zoom Workplace Enterprise"}, {"col": "K", "name": "Enterprise", "group": "Legacy Meeting"}, {"col": "L", "name": "Enterprise Bundle", "group": "Legacy Meeting  Bundle"}], "keys": [{"feature": "Meeting Capacity", "label": "Meetings", "cells": {"C": "100", "D": "100", "E": "350", "F": "350", "G": "1000", "H": "500", "I": "1000", "J": "1000", "K": "500", "L": "500"}, "row": 8}, {"feature": "Zoom Room", "label": "Zoom Room", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "Bundle(25):Room(1)", "H": "❌", "I": "Bundle(1):Room(1)", "J": "Bundle(1):Room(1)", "K": "❌", "L": "❌"}, "row": 19}, {"feature": "Visitor Management", "label": "Visitor Management", "cells": {"C": null, "D": null, "E": null, "F": null, "G": null, "H": null, "I": null, "J": null, "K": null, "L": null}, "row": 22}, {"feature": "Unlimited Regional Calling", "label": "Unlimited Regional Calling", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "✅", "G": "❌", "H": "❌", "I": "❌", "J": "✅", "K": "❌", "L": "❌"}, "row": 29}, {"feature": "PowerPack", "label": "PowerPack", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "✅", "J": "✅", "K": "❌", "L": "❌"}, "row": 30}, {"feature": "Phone Pro", "label": "Phone Pro", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "✅", "G": "❌", "H": "✅", "I": "✅", "J": "✅", "K": "❌", "L": "❌"}, "row": 32}], "show": [{"feature": "Meeting Capacity", "label": "Meeting Capacity", "cells": {"C": "100", "D": "100", "E": "350", "F": "350", "G": "1000", "H": "500", "I": "1000", "J": "1000", "K": "500", "L": "500"}}, {"feature": "Meeting Capacity For Free User", "label": "Meeting Capacity For Free User", "cells": {"C": "100", "D": "100", "E": "350", "F": "350", "G": "500", "H": "500", "I": "500", "J": "500", "K": "500", "L": "500"}}, {"feature": "Cloud Recording Storage  (GB/License)", "label": "Cloud Recording Storage  (GB/License)", "cells": {"C": "Local", "D": "1", "E": "5", "F": "10", "G": "Unlimited", "H": "Unlimited", "I": "Unlimited", "J": "Unlimited", "K": "Unlimited", "L": "Unlimited"}}, {"feature": "Workspace Reservation", "label": "Workspace Reservation", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "✅", "G": "✅", "H": "✅", "I": "✅", "J": "✅", "K": "❌", "L": "❌"}}, {"feature": "Zoom Room", "label": "Zoom Room", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "Bundle(25):Room(1)", "H": "❌", "I": "Bundle(1):Room(1)", "J": "Bundle(1):Room(1)", "K": "❌", "L": "❌"}}, {"feature": "Room Connector", "label": "Room Connector", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "Bundle(25):Connector(1)", "H": "❌", "I": "Bundle(1):Connector(1)", "J": "Bundle(1):Connector(1)", "K": "❌", "L": "Bundle(1):Connector(1)"}}, {"feature": "Visitor Management", "label": "Visitor Management", "cells": {"C": null, "D": null, "E": null, "F": null, "G": null, "H": null, "I": null, "J": null, "K": null, "L": null}}, {"feature": "Zoom Node Basic", "label": "Zoom Node Basic", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "❌"}}, {"feature": "Zoom Node Phone Hybrid", "label": "Zoom Node Phone Hybrid", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "❌"}}, {"feature": "Unlimited Regional Calling", "label": "Unlimited Regional Calling", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "✅", "G": "❌", "H": "❌", "I": "❌", "J": "✅", "K": "❌", "L": "❌"}}, {"feature": "PowerPack", "label": "PowerPack", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "✅", "J": "✅", "K": "❌", "L": "❌"}}, {"feature": "Common Area", "label": "Common Area", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "✅", "J": "✅", "K": "❌", "L": "❌"}}, {"feature": "Phone Pro", "label": "Phone Pro", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "✅", "G": "❌", "H": "✅", "I": "✅", "J": "✅", "K": "❌", "L": "❌"}}, {"feature": "Microsoft Teams", "label": "Microsoft Teams", "cells": {"C": "❌", "D": "❌", "E": "❌", "F": "❌", "G": "❌", "H": "❌", "I": "❌", "J": "❌", "K": "❌", "L": "❌"}}]}};
+const BAD = '❌';
+let sheet = 'Commercial';
+let selected = new Set();
+const $ = s => document.querySelector(s);
+const isBad = v => v!==null && v!==undefined && String(v).trim()===BAD;
+const isOffered = v => v!==null && v!==undefined && String(v).trim()!=='' && !isBad(v);
+
+function renderKeys(){
+  const box=$('#keys'); box.innerHTML='';
+  DATA[sheet].keys.forEach(k=>{
+    const on=selected.has(k.feature);
+    const el=document.createElement('div');
+    el.className='key'+(on?' on':'');
+    el.innerHTML=`<div class="box">${on?'✓':''}</div><div><span class="nm">${k.label}</span></div>`;
+    el.onclick=()=>{ selected.has(k.feature)?selected.delete(k.feature):selected.add(k.feature); render(); };
+    box.appendChild(el);
+  });
+}
+
+function render(){
+  renderKeys();
+  const d=DATA[sheet];
+  const total=d.licenses.length;
+  const keyObjs=d.keys.filter(k=>selected.has(k.feature));
+  const matches=d.licenses.filter(lic=> keyObjs.every(k=>isOffered(k.cells[lic.col])) );
+  $('#cnt').textContent=matches.length;
+  $('#cntlbl').textContent='of '+total+' license'+(total!==1?'s':'');
+  const sk=$('#selkeys');
+  sk.innerHTML=keyObjs.length?('Keys: '+keyObjs.map(k=>`<span>${k.label}</span>`).join('')):'<i>No keys selected — showing all licenses.</i>';
+  const res=$('#results'); res.innerHTML='';
+  if(!matches.length){ res.innerHTML='<div class="empty">No license offers every selected key.</div>'; return; }
+  const groups={}, order=[];
+  matches.forEach(l=>{ const g=l.group||'Other'; if(!groups[g]){groups[g]=[];order.push(g);} groups[g].push(l); });
+  order.forEach(g=>{
+    const gd=document.createElement('div'); gd.className='grp';
+    gd.innerHTML=`<div class="grp-h">${g}</div>`;
+    groups[g].forEach(l=>{
+      const rows=d.show.map(s=>{
+        const v=s.cells[l.col];
+        const bad=isBad(v); const green=String(v).trim()==='✅';
+        const disp = (v===null||v===undefined||String(v).trim()==='')?'—':v;
+        const cls = bad?'redx':(green?'green':'');
+        return `<div class="row${bad?' isredx':''}"><span class="f">${s.feature}</span><span class="val ${cls}">${disp}</span></div>`;
+      }).join('');
+      const card=document.createElement('div'); card.className='lic';
+      card.innerHTML=`<div class="lname">${l.name}</div><div class="show">${rows}</div>`;
+      gd.appendChild(card);
+    });
+    res.appendChild(gd);
+  });
+}
+
+$('#seg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('#seg').children].forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); sheet=b.dataset.sheet; selected.clear(); render();
+});
+$('#all').onclick=()=>{ DATA[sheet].keys.forEach(k=>selected.add(k.feature)); render(); };
+$('#clear').onclick=()=>{ selected.clear(); render(); };
+render();
+</script>
+</body>
+</html>
